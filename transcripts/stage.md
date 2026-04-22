@@ -54,7 +54,7 @@ All eight lists are parallel: row N across every list describes scene N. Lengths
 | CB2 | `apply_choice (letter)` | Implemented |
 | CB3 | `is_flag_set (flag_id)` | Implemented |
 | CB4 | `run_scene_side_effects (scene_id)` | Implemented |
-| CB5 | `resolve_ending` | **Task 7** |
+| CB5 | `resolve_ending` | Implemented |
 
 Each section will be filled in by its owning task with: Purpose paragraph, Contract (where applicable), and a pseudocode block listing matching the Scratch blocks exactly.
 
@@ -218,7 +218,7 @@ define apply_choice (letter)                      // "Run without screen refresh
 - Called exactly once per CB2 invocation.
 - Does not broadcast; does not re-enter itself for the new scene. Only CB2 drives scene transitions.
 
-**Blocks (Task 5 version — CB5 calls at rows 10/11 are stubbed as comments; Task 7 wires them in):**
+**Blocks (Task 7 version — CB5 calls activated):**
 
 ```
 define run_scene_side_effects (scene_id)
@@ -233,13 +233,13 @@ define run_scene_side_effects (scene_id)
     set [food_carried v] to (1)                   // got the sugar
   end
 
-  // transition-scene hooks (Task 7):
-  // if <(scene_id) = (10)> then
-  //   resolve_ending
-  // end
-  // if <(scene_id) = (11)> then
-  //   resolve_ending
-  // end
+  // transition scene hooks — fold flag state into ending id
+  if <(scene_id) = (10)> then                    // reporting transition
+    resolve_ending
+  end
+  if <(scene_id) = (11)> then                    // sneaking transition
+    resolve_ending
+  end
 
   // defensive ending_code sets — dead code on the normal path
   // (resolve_ending sets ending_code at the transitions), retained
@@ -303,3 +303,44 @@ define is_flag_set (flag_id)
     end
   end
 ```
+
+---
+
+## CB5. `resolve_ending` — no inputs
+
+**Purpose:** Fold the current flag state into a specific ending scene id, and atomically set both `current_scene` and `ending_code`. Called by CB4 on entry to transition scenes 10 (reporting) and 11 (sneaking). This is the only place in the engine where multi-flag combinations determine control flow — see ADR-0004.
+
+**Contract:**
+- Sets `current_scene` to 12, 13, 14, or 15 (the ending scenes).
+- Sets `ending_code` to the matching 1, 2, 3, or 4.
+- Does not broadcast; the broadcast happens from CB2 after CB4 returns.
+- Ladder order is essential: `has_orders` beats everything, then scout+food, then food alone, else empty-handed.
+
+**Blocks:**
+
+```
+define resolve_ending
+  if <(has_orders) = (1)> then
+    set [current_scene v] to (15)              // ending 4: full glory
+    set [ending_code v] to (4)
+  else
+    if <<(scout_trail_known) = (1)> and <(food_carried) = (1)>> then
+      set [current_scene v] to (14)            // ending 3: hero shortcut
+      set [ending_code v] to (3)
+    else
+      if <(food_carried) = (1)> then
+        set [current_scene v] to (12)          // ending 1: triumph
+        set [ending_code v] to (1)
+      else
+        set [current_scene v] to (13)          // ending 2: empty-handed
+        set [ending_code v] to (2)
+      end
+    end
+  end
+```
+
+**Verification (Task 7):**
+- Path A (1→5→3→4→7→9→11): ends at 12, ending_code=1. ✓
+- Path B (1→5→3→4→8→9→11): ends at 13, ending_code=2. ✓
+- Path C (1→5→3→6→7→9→11): ends at 14, ending_code=3. ✓
+- Path D (1→2→3→6→7→9[C]→10): ends at 15, ending_code=4. ✓

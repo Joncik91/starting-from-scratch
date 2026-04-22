@@ -46,14 +46,14 @@ All eight lists are parallel: row N across every list describes scene N. Lengths
 | Section | Name | Status |
 |---|---|---|
 | S1 | `when green flag clicked` — Initialize | Implemented |
-| S2 | `when I receive choose_a` | **Task 5** |
-| S2 | `when I receive choose_b` | **Task 5** |
-| S2 | `when I receive choose_c` | **Task 5** |
+| S2 | `when I receive choose_a` | Implemented |
+| S2 | `when I receive choose_b` | Implemented |
+| S2 | `when I receive choose_c` | Implemented |
 | S3 | `when I receive render_scene` — Render dispatcher | Implemented |
 | CB1 | `add_scene (text)(a)(b)(na)(nb)(fid)(c)(nc)` | Implemented |
-| CB2 | `apply_choice (letter)` | **Task 5** |
+| CB2 | `apply_choice (letter)` | Implemented |
 | CB3 | `is_flag_set (flag_id)` | **Task 6** |
-| CB4 | `run_scene_side_effects (scene_id)` | **Task 5** |
+| CB4 | `run_scene_side_effects (scene_id)` | Implemented |
 | CB5 | `resolve_ending` | **Task 7** |
 
 Each section will be filled in by its owning task with: Purpose paragraph, Contract (where applicable), and a pseudocode block listing matching the Scratch blocks exactly.
@@ -165,4 +165,106 @@ No inner comments — the body is one append per input in input order, self-evid
 when I receive [render_scene v]
   broadcast [render_text v] and wait          // V1 paints; block until done
   broadcast [update_reactors v]               // R1 reacts (show/hide)
+```
+
+---
+
+## CB2. `apply_choice (letter)` — 1 input
+
+**Purpose:** The heart of the interpreter — advance the story state machine by exactly one step. Reads the appropriate `scene_next_*` cell, applies the E2/E3 guards, updates `current_scene`, fires scene-entry side effects, broadcasts the render. "Run without screen refresh" is checked so current_scene and ending_code are both coherent before any render tick.
+
+**Contract (locked — DO NOT reorder):**
+1. Capture `next_id` from `scene_next_<letter>` at `current_scene` BEFORE mutating current_scene.
+2. Guard E2: if `next_id = 0`, no such choice — no-op.
+3. Guard E3: if `ending_code > 0`, story ended — no-op.
+4. Set `current_scene = next_id`.
+5. Call `run_scene_side_effects(current_scene)` — operates on the scene JUST ENTERED.
+6. Broadcast `render_scene`.
+
+**Local:** Scratch custom blocks have no true locals; we use a Stage variable `next_id` as a scratchpad (watcher hidden). It is not a story-state variable.
+
+**Blocks:**
+
+```
+define apply_choice (letter)                      // "Run without screen refresh" = TRUE
+  set [next_id v] to (0)
+  if <(letter) = [a]> then
+    set [next_id v] to (item (current_scene) of [scene_next_a v])
+  end
+  if <(letter) = [b]> then
+    set [next_id v] to (item (current_scene) of [scene_next_b v])
+  end
+  if <(letter) = [c]> then
+    set [next_id v] to (item (current_scene) of [scene_next_c v])
+  end
+  if <(next_id) = (0)> then
+    stop [this script v]                          // E2: no such choice here
+  end
+  if <(ending_code) > (0)> then
+    stop [this script v]                          // E3: story already ended
+  end
+  set [current_scene v] to (next_id)
+  run_scene_side_effects (current_scene)          // entry side effects on scene JUST ENTERED
+  broadcast [render_scene v]
+```
+
+---
+
+## CB4. `run_scene_side_effects (scene_id)` — 1 input
+
+**Purpose:** Apply side effects on entry to a scene. Called by CB2 after `current_scene` is updated. The parameter is the scene being entered, not the one being left — that's what lets scene 2's entry set `has_orders`, scene 6's set `scout_trail_known`, etc.
+
+**Contract:**
+- Called exactly once per CB2 invocation.
+- Does not broadcast; does not re-enter itself for the new scene. Only CB2 drives scene transitions.
+
+**Blocks (Task 5 version — CB5 calls at rows 10/11 are stubbed as comments; Task 7 wires them in):**
+
+```
+define run_scene_side_effects (scene_id)
+  // flag sets on scene entry
+  if <(scene_id) = (2)> then
+    set [has_orders v] to (1)                     // queen's briefing
+  end
+  if <(scene_id) = (6)> then
+    set [scout_trail_known v] to (1)              // met the scout
+  end
+  if <(scene_id) = (7)> then
+    set [food_carried v] to (1)                   // got the sugar
+  end
+
+  // transition-scene hooks (Task 7):
+  // if <(scene_id) = (10)> then
+  //   resolve_ending
+  // end
+  // if <(scene_id) = (11)> then
+  //   resolve_ending
+  // end
+
+  // defensive ending_code sets — dead code on the normal path
+  // (resolve_ending sets ending_code at the transitions), retained
+  // so a future direct route into 12-15 still flags the story ended
+  if <(scene_id) = (12)> then set [ending_code v] to (1) end
+  if <(scene_id) = (13)> then set [ending_code v] to (2) end
+  if <(scene_id) = (14)> then set [ending_code v] to (3) end
+  if <(scene_id) = (15)> then set [ending_code v] to (4) end
+```
+
+---
+
+## S2. Input handlers — `choose_a`, `choose_b`, `choose_c`
+
+**Purpose:** Thin entry points from the Controller (Worker Ant's keyboard hats, Narrator Scroll's clicks) into the interpreter. Each hat is counted as its own script by Scratch.
+
+**Blocks:**
+
+```
+when I receive [choose_a v]
+  apply_choice [a]
+
+when I receive [choose_b v]
+  apply_choice [b]
+
+when I receive [choose_c v]
+  apply_choice [c]
 ```

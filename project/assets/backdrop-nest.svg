@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" width="480" height="360">
+  <!-- Nest backdrop: gradient from dark-brown (deep nest) to lighter earth near top -->
+  <defs>
+    <linearGradient id="earthGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5c3a1e"/>
+      <stop offset="100%" stop-color="#2b1a0c"/>
+    </linearGradient>
+  </defs>
+  <rect width="480" height="360" fill="url(#earthGrad)"/>
+  <!-- A few tunnel silhouettes to suggest depth -->
+  <ellipse cx="80" cy="80" rx="40" ry="20" fill="#1a0f06" opacity="0.6"/>
+  <ellipse cx="400" cy="120" rx="50" ry="25" fill="#1a0f06" opacity="0.6"/>
+  <ellipse cx="240" cy="260" rx="80" ry="35" fill="#1a0f06" opacity="0.5"/>
+</svg>

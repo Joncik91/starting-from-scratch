@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 60" width="80" height="60">
+  <!-- Worker ant: three body segments (head, thorax, abdomen), six legs, two antennae -->
+  <!-- Head -->
+  <ellipse cx="18" cy="30" rx="10" ry="8" fill="#2b1d10"/>
+  <!-- Eye -->
+  <circle cx="14" cy="28" r="1.5" fill="#fff"/>
+  <!-- Antennae -->
+  <path d="M14 24 Q10 18 6 14" stroke="#2b1d10" stroke-width="1.5" fill="none"/>
+  <path d="M18 22 Q16 16 14 10" stroke="#2b1d10" stroke-width="1.5" fill="none"/>
+  <!-- Thorax -->
+  <ellipse cx="38" cy="32" rx="10" ry="7" fill="#3a2815"/>
+  <!-- Abdomen -->
+  <ellipse cx="60" cy="33" rx="14" ry="10" fill="#2b1d10"/>
+  <!-- Legs (three per side, middle ones angled forward and back) -->
+  <path d="M32 36 L28 48" stroke="#2b1d10" stroke-width="1.5"/>
+  <path d="M38 38 L38 50" stroke="#2b1d10" stroke-width="1.5"/>
+  <path d="M44 36 L48 48" stroke="#2b1d10" stroke-width="1.5"/>
+  <path d="M32 28 L28 20" stroke="#2b1d10" stroke-width="1.5"/>
+  <path d="M38 26 L38 16" stroke="#2b1d10" stroke-width="1.5"/>
+  <path d="M44 28 L48 20" stroke="#2b1d10" stroke-width="1.5"/>
+</svg>

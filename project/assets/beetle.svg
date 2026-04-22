@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 70" width="90" height="70">
+  <!-- Beetle: oval carapace, mandibles front, six legs -->
+  <!-- Carapace -->
+  <ellipse cx="45" cy="35" rx="30" ry="22" fill="#1a1a1a"/>
+  <!-- Segment line down the middle -->
+  <line x1="45" y1="15" x2="45" y2="55" stroke="#444" stroke-width="1"/>
+  <!-- Pronotum (shield behind the head) -->
+  <ellipse cx="45" cy="18" rx="12" ry="6" fill="#2a2a2a"/>
+  <!-- Mandibles -->
+  <path d="M39 10 L34 4" stroke="#1a1a1a" stroke-width="2"/>
+  <path d="M51 10 L56 4" stroke="#1a1a1a" stroke-width="2"/>
+  <!-- Six legs -->
+  <path d="M18 28 L4 22" stroke="#1a1a1a" stroke-width="2"/>
+  <path d="M15 38 L0 40" stroke="#1a1a1a" stroke-width="2"/>
+  <path d="M18 48 L4 54" stroke="#1a1a1a" stroke-width="2"/>
+  <path d="M72 28 L86 22" stroke="#1a1a1a" stroke-width="2"/>
+  <path d="M75 38 L90 40" stroke="#1a1a1a" stroke-width="2"/>
+  <path d="M72 48 L86 54" stroke="#1a1a1a" stroke-width="2"/>
+</svg>

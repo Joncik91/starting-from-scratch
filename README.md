@@ -2,7 +2,7 @@
 
 An interactive branching story in Scratch, built as a data-driven interpreter to practice CS fundamentals (state machines, separation of data from logic, MVC-style responsibility splits).
 
-**Play:** *link to scratch.mit.edu project goes here once published*
+**Play:** Load `project/ant-adventure.sb3` in Scratch (https://scratch.mit.edu → File → Load from your computer). Then click the green flag.
 
 ## What this project is
 
@@ -15,7 +15,7 @@ Under the hood:
 - **3 flags** (`food_carried`, `scout_trail_known`, `has_orders`) — each gates a real choice or ending.
 - **4 distinct endings.**
 - **3 sprites** with separated roles: Worker Ant (input), Narrator Scroll (view), Beetle (reactor).
-- **4 custom blocks** (`add_scene`, `apply_choice`, `is_flag_set`, `run_scene_side_effects`) that keep the engine DRY.
+- **5 custom blocks** (`add_scene`, `apply_choice`, `is_flag_set`, `run_scene_side_effects`, `resolve_ending`) that keep the engine DRY.
 
 ## How to read this repo
 
@@ -40,3 +40,23 @@ All assignment requirements are met. See `docs/superpowers/specs/2026-04-22-ant-
 ## Commit conventions
 
 Commits carry **what** in the subject line, **why** and **where** in the body, plus an explicit **when** / section tag. Template in the spec (§7).
+
+---
+
+## Status
+
+- [x] Spec approved (2026-04-22)
+- [x] Plan approved (2026-04-22)
+- [x] Assets created (Task 1)
+- [x] Scratch project scaffolded (Task 2)
+- [x] Scene table + initialize (Task 3)
+- [x] Render path (Task 4)
+- [x] Interpreter + keyboard input (Task 5)
+- [x] Choice-C flag gate (Task 6)
+- [x] Ending resolver — all four paths pass (Task 7)
+- [x] Click input (Task 8)
+- [x] Beetle reactor (Task 9)
+- [x] Comment sweep + test matrix (Task 10)
+- [x] Published / README updated (Task 11)
+
+All spec §8 requirements met. See `transcripts/stage.md` §"Test Matrix Results" for the final verification log.

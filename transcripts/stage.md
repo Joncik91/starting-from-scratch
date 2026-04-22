@@ -45,15 +45,106 @@ All eight lists are parallel: row N across every list describes scene N. Lengths
 
 | Section | Name | Status |
 |---|---|---|
-| S1 | `when green flag clicked` — Initialize | **Task 3** |
+| S1 | `when green flag clicked` — Initialize | Implemented |
 | S2 | `when I receive choose_a` | **Task 5** |
 | S2 | `when I receive choose_b` | **Task 5** |
 | S2 | `when I receive choose_c` | **Task 5** |
 | S3 | `when I receive render_scene` — Render dispatcher | **Task 4** |
-| CB1 | `add_scene (text)(a)(b)(na)(nb)(fid)(c)(nc)` | **Task 3** |
+| CB1 | `add_scene (text)(a)(b)(na)(nb)(fid)(c)(nc)` | Implemented |
 | CB2 | `apply_choice (letter)` | **Task 5** |
 | CB3 | `is_flag_set (flag_id)` | **Task 6** |
 | CB4 | `run_scene_side_effects (scene_id)` | **Task 5** |
 | CB5 | `resolve_ending` | **Task 7** |
 
 Each section will be filled in by its owning task with: Purpose paragraph, Contract (where applicable), and a pseudocode block listing matching the Scratch blocks exactly.
+
+---
+
+## S1. `when green flag clicked` — Initialize
+
+**Purpose:** Reset all runtime state and populate the scene table. This runs exactly once per play (per green-flag click). It is the only place `current_scene` is set to its start value (1), the only place the scene table is built, and the only place the `ready` flag is raised from 0 → 1.
+
+**Contract:**
+- Begins by setting `ready=0` so in-flight input from the previous play is ignored during reset.
+- Clears all 8 scene lists before calling CB1 — the "clear + rebuild" pattern is cheaper than diffing and keeps the parallel-list invariant bulletproof.
+- Raises `ready=1` only AFTER the first `render_scene` completes. This relies on `broadcast render_scene and wait` to block until the render finishes (not just until it starts).
+
+**Blocks:**
+
+```
+when green flag clicked
+  set [ready v] to (0)                        // gate input during reset
+
+  // reset runtime state to start values
+  set [current_scene v] to (1)
+  set [food_carried v] to (0)
+  set [scout_trail_known v] to (0)
+  set [has_orders v] to (0)
+  set [ending_code v] to (0)
+
+  // clear the scene table before rebuilding (keeps parallel-list
+  // invariant trivially safe — ADR-0001)
+  delete all of [scene_text v]
+  delete all of [scene_choice_a v]
+  delete all of [scene_choice_b v]
+  delete all of [scene_next_a v]
+  delete all of [scene_next_b v]
+  delete all of [scene_flag_required v]
+  delete all of [scene_choice_c v]
+  delete all of [scene_next_c v]
+
+  // populate the scene table (15 rows in scene-id order)
+  add_scene [You wake in the nest. The queen's antennae tap urgently — an important briefing.] [Listen to the queen] [Slip out to the tunnel quietly] (2) (5) (0) [] (0)
+  add_scene [The queen's antennae brush yours. "The picnic humans left a sugar cube. Storm is coming. Bring it back — and HURRY."] [Onward to the tunnel exit] [] (3) (0) (0) [] (0)
+  add_scene [You reach the tunnel exit. Sunlight and grass. Two paths branch before you.] [Short route — risky ground with a beetle] [Long route — quieter, may find a scout] (4) (6) (0) [] (0)
+  add_scene [A massive beetle blocks the path, mandibles clicking.] [Dash past for the sugar] [Retreat — too dangerous] (7) (8) (0) [] (0)
+  add_scene [You sneak out before anyone notices. The tunnel exit lies ahead.] [Continue to the tunnel exit] [] (3) (0) (0) [] (0)
+  add_scene [A fellow scout greets you and shares a shortcut only the patrols know.] [Take the scout's path to the sugar] [] (7) (0) (0) [] (0)
+  add_scene [The sugar cube glitters in the grass. You hoist it — heavier than you are, but ants don't quit.] [Home — time is running out] [] (9) (0) (0) [] (0)
+  add_scene [Bruised and limping, you turn back empty-handed.] [Home without the sugar] [] (9) (0) (0) [] (0)
+  add_scene [The nest is in sight. One last choice: sneak or report?] [Sneak back quietly] [Take the main tunnel] (11) (11) (3) [Report to the queen first] (10)
+  add_scene [...] [] [] (0) (0) (0) [] (0)                  // row 10: reporting transition
+  add_scene [...] [] [] (0) (0) (0) [] (0)                  // row 11: sneaking transition
+  add_scene [Triumph! You haul the sugar to the larder. The colony feasts tonight.] [] [] (0) (0) (0) [] (0)         // row 12: ending 1 (triumph)
+  add_scene [You return empty-handed. The colony will weather the storm on stored grain — this time.] [] [] (0) (0) (0) [] (0)   // row 13: ending 2 (empty-handed)
+  add_scene [The scout's shortcut shaved hours off your trip. You arrive with sugar before the storm breaks. Your name is whispered in the tunnels.] [] [] (0) (0) (0) [] (0)      // row 14: ending 3 (hero shortcut)
+  add_scene [You reported to the queen, delivered the sugar, and the colony is evacuated ahead of the storm. The queen taps her antennae in approval — full glory.] [] [] (0) (0) (0) [] (0) // row 15: ending 4 (full glory)
+
+  set [current_scene v] to (1)                // redundant but explicit — row 1 is the entry point
+  broadcast [render_scene v] and wait         // paint scene 1; wait ensures first frame is up before input
+  set [ready v] to (1)                        // input is now accepted
+```
+
+**Verification (Task 3):**
+- All 8 lists have length 15 after green flag. ✓
+- `scene_text[1]` = "You wake in the nest..."
+- `scene_text[9]` = "The nest is in sight..."
+- `scene_next_c[9]` = 10
+- `scene_flag_required[9]` = 3
+- `scene_text[15]` = "You reported to the queen..."
+
+---
+
+## CB1. `add_scene (text)(a)(b)(na)(nb)(fid)(c)(nc)` — 8 inputs
+
+**Purpose:** The only writer to the scene table. Appends one row across all 8 parallel lists in one call, keeping the parallel-list invariant (equal lengths) trivially safe. Called 15 times from S1; never called anywhere else.
+
+**Contract:**
+- All 8 inputs are always provided (positional). Empty string / 0 are valid "no value" sentinels depending on column.
+- Runs synchronously; no broadcasts, no screen refresh suppression needed.
+
+**Blocks:**
+
+```
+define add_scene (text) (a) (b) (na) (nb) (fid) (c) (nc)
+  add (text) to [scene_text v]
+  add (a) to [scene_choice_a v]
+  add (b) to [scene_choice_b v]
+  add (na) to [scene_next_a v]
+  add (nb) to [scene_next_b v]
+  add (fid) to [scene_flag_required v]
+  add (c) to [scene_choice_c v]
+  add (nc) to [scene_next_c v]
+```
+
+No inner comments — the body is one append per input in input order, self-evident given the purpose comment on the hat.

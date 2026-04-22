@@ -49,7 +49,7 @@ All eight lists are parallel: row N across every list describes scene N. Lengths
 | S2 | `when I receive choose_a` | **Task 5** |
 | S2 | `when I receive choose_b` | **Task 5** |
 | S2 | `when I receive choose_c` | **Task 5** |
-| S3 | `when I receive render_scene` — Render dispatcher | **Task 4** |
+| S3 | `when I receive render_scene` — Render dispatcher | Implemented |
 | CB1 | `add_scene (text)(a)(b)(na)(nb)(fid)(c)(nc)` | Implemented |
 | CB2 | `apply_choice (letter)` | **Task 5** |
 | CB3 | `is_flag_set (flag_id)` | **Task 6** |
@@ -148,3 +148,21 @@ define add_scene (text) (a) (b) (na) (nb) (fid) (c) (nc)
 ```
 
 No inner comments — the body is one append per input in input order, self-evident given the purpose comment on the hat.
+
+---
+
+## S3. `when I receive render_scene` — Render dispatcher
+
+**Purpose:** Fan out a single `render_scene` signal into the two render phases: paint first (Narrator via `render_text`), then reactors (Beetle via `update_reactors`). `broadcast render_text and wait` is critical — without it, the Beetle's animation (Task 9) can start mid-paint on slower devices, producing visible jitter. This was caught in the Sonnet peer review (spec §10).
+
+**Contract:**
+- Called by CB2 after a successful `apply_choice` step.
+- Also called by S1 after the scene table is built, to paint the initial scene.
+
+**Blocks:**
+
+```
+when I receive [render_scene v]
+  broadcast [render_text v] and wait          // V1 paints; block until done
+  broadcast [update_reactors v]               // R1 reacts (show/hide)
+```

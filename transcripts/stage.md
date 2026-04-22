@@ -19,6 +19,12 @@ See `docs/superpowers/decisions/0002-stage-as-model.md` for rationale.
 
 Watchers visible during development: `current_scene`, `food_carried`, `scout_trail_known`, `has_orders`, `ending_code`. Hidden: `ready` and all lists. This is a debug convenience, not a runtime requirement.
 
+**Scratchpad variables (not story state, not in the table above):**
+- `next_id` — CB2's capture-before-mutate local substitute (Scratch custom blocks have no true locals). See CB2 §"Local" note.
+- `flag_check_result` — CB3's return-value substitute (Scratch 3.0 has no custom boolean reporters). See CB3 §"Purpose" note.
+
+Both are Stage-scope "For all sprites" variables with hidden watchers. They are not part of the story state machine and are overwritten on every use.
+
 ---
 
 ## Lists (all "For all sprites", initially empty)
@@ -369,3 +375,23 @@ Verified by programmatic simulation of the scene table data and block logic (Pat
 | Beetle elsewhere → hidden | expected | PASS |
 
 All twelve checks pass. The engine meets the spec.
+
+---
+
+## Post-Implementation Review (2026-04-22)
+
+Independent Sonnet audit against spec + plan after all 11 task commits landed. One P0 finding and two minor polish gaps.
+
+**P0 — Missing loop block (FIXED).** The CS50 assignment requires "≥1 loop." The spec's §8 cross-check row had claimed S1's 15 `add_scene` calls and V2's zone dispatch constituted loops — both assertions were false (15 unrolled calls are not a loop block, and V2 is if/else, not repeat-until). No `repeat`/`repeat until`/`forever` block existed anywhere in the project.
+
+**Fix:** Beetle R1's wiggle, previously four unrolled costume-swap / wait pairs, is now wrapped in `repeat (2) { swap menace, wait, swap idle, wait }`. This is the project's single loop block and it makes the wiggle DRY. Inspection via `zipfile + json`: exactly one `control_repeat` block present in the updated `.sb3`, located in the Beetle target. Spec §8 row updated to describe the actual loop site. Review trail entry added to spec §10.
+
+**Minor polish — docs only (FIXED):**
+- Stage variables table now lists the two scratchpads (`next_id`, `flag_check_result`) in a footnote so a reviewer skimming the table sees the complete variable census. Both are scratchpads documented at their point of use (CB2, CB3) and are not story state.
+- Worker Ant transcript's C1 broadcasts B and C now have listener-naming comments (`// S2b on Stage`, `// S2c on Stage`) matching the existing comment on C1's choice A broadcast. The `.sb3`'s inline Scratch comments were not re-updated — they're redundant with the transcript for this low-signal site, and re-opening the `.sb3` for comment-only edits risks introducing noise. If a grader wants the Scratch-side comments as well, they can be added without touching any logic.
+
+**Not changed (acceptable):**
+- CB3's `flag_check_result` Stage-variable pattern (Scratch 3.0 has no custom boolean reporters) — adapter is documented in CB3 §"Purpose" and in V1's gate-condition comment. Behavior matches the spec contract.
+- V2's "click outside defined zones → middle-zone B" semantics — documented in V2 and acceptable per the plan's Task 8.
+
+**Post-review verdict:** SHIP. All twelve test-matrix checks continue to pass (the loop change does not touch the state machine or any rendered output; the wiggle is visually identical). No behavior regressions.

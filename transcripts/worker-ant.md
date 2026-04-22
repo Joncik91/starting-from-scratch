@@ -34,12 +34,12 @@ when [1 v] key pressed
 
 when [2 v] key pressed
   if <(ready) = (1)> then
-    broadcast [choose_b v]
+    broadcast [choose_b v]                        // S2b on Stage
   end
 
 when [3 v] key pressed
   if <(ready) = (1)> then
-    broadcast [choose_c v]
+    broadcast [choose_c v]                        // S2c on Stage
   end
 ```
 

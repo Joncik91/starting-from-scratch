@@ -1,0 +1,12 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*~
+*.swp
+.idea/
+.vscode/
+
+# Scratch backup/temp files
+*.sb3.bak
+
+# Build output / local notes — none expected for this project

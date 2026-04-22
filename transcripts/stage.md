@@ -52,7 +52,7 @@ All eight lists are parallel: row N across every list describes scene N. Lengths
 | S3 | `when I receive render_scene` — Render dispatcher | Implemented |
 | CB1 | `add_scene (text)(a)(b)(na)(nb)(fid)(c)(nc)` | Implemented |
 | CB2 | `apply_choice (letter)` | Implemented |
-| CB3 | `is_flag_set (flag_id)` | **Task 6** |
+| CB3 | `is_flag_set (flag_id)` | Implemented |
 | CB4 | `run_scene_side_effects (scene_id)` | Implemented |
 | CB5 | `resolve_ending` | **Task 7** |
 
@@ -267,4 +267,39 @@ when I receive [choose_b v]
 
 when I receive [choose_c v]
   apply_choice [c]
+```
+
+---
+
+## CB3. `is_flag_set (flag_id)` — 1 input, sets `flag_check_result`
+
+**Purpose:** Translate a numeric flag id (as stored in `scene_flag_required`) to a boolean check on the corresponding named variable. Sets `flag_check_result` to 1 (true) or 0 (false). This is the sole place the id ↔ variable mapping lives — adding a flag = adding one branch here, nothing else. See ADR-0003.
+
+Note: Scratch 3.0 does not support custom boolean reporters. This block uses a Stage variable `flag_check_result` as the return value instead.
+
+**Contract:**
+- Input: 1 (food_carried), 2 (scout_trail_known), 3 (has_orders).
+- Any other input (including 0) leaves `flag_check_result` at 0 (false).
+- Sets `flag_check_result` before returning; caller reads it immediately after.
+
+**Blocks:**
+
+```
+define is_flag_set (flag_id)
+  set [flag_check_result v] to (0)              // default: false
+  if <(flag_id) = (1)> then
+    if <(food_carried) = (1)> then
+      set [flag_check_result v] to (1)
+    end
+  end
+  if <(flag_id) = (2)> then
+    if <(scout_trail_known) = (1)> then
+      set [flag_check_result v] to (1)
+    end
+  end
+  if <(flag_id) = (3)> then
+    if <(has_orders) = (1)> then
+      set [flag_check_result v] to (1)
+    end
+  end
 ```

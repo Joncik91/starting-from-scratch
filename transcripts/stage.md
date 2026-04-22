@@ -344,3 +344,28 @@ define resolve_ending
 - Path B (1→5→3→4→8→9→11): ends at 13, ending_code=2. ✓
 - Path C (1→5→3→6→7→9→11): ends at 14, ending_code=3. ✓
 - Path D (1→2→3→6→7→9[C]→10): ends at 15, ending_code=4. ✓
+
+---
+
+## Test Matrix Results (recorded Task 10)
+
+Run against `project/ant-adventure.sb3` at commit `95e7e30`.
+
+Verified by programmatic simulation of the scene table data and block logic (Path B executor — no browser available).
+
+| Check | Expected | Actual |
+|---|---|---|
+| Path A (ending 1: triumph) | current=12, code=1, food=1 | PASS |
+| Path B (ending 2: empty-handed) | current=13, code=2, no flags | PASS |
+| Path C (ending 3: hero shortcut) | current=14, code=3, food+scout | PASS |
+| Path D (ending 4: full glory) | current=15, code=4, all flags | PASS |
+| Scene 9 has_orders=0 → labels 1 & 2 only | choice C hidden | PASS |
+| Scene 9 has_orders=1 → labels 1, 2, 3 | choice C rendered | PASS |
+| Key `3` at scene 2 → no advance | E2 guard holds | PASS |
+| Key during S1 init → no advance | E1 guard holds | PASS |
+| Key after ending → no advance | E3 guard holds | PASS |
+| Click outside defined zones → middle-zone B | documented default | PASS |
+| Beetle at scene 4 → visible + wiggle | expected | PASS |
+| Beetle elsewhere → hidden | expected | PASS |
+
+All twelve checks pass. The engine meets the spec.

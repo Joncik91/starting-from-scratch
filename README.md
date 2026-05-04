@@ -1,5 +1,11 @@
 # Starting from Scratch — *A Worker Ant's Urgent Day*
 
+[![CS50: Starting from Scratch](https://img.shields.io/badge/CS50-Starting%20from%20Scratch-A6192E)](https://cs50.harvard.edu/x/)
+[![Built in Scratch 3](https://img.shields.io/badge/Scratch-3.0-FFAB19?logo=scratch&logoColor=white)](https://scratch.mit.edu/)
+[![Endings: 4](https://img.shields.io/badge/endings-4-E8954A)]()
+[![Scenes: 14](https://img.shields.io/badge/scenes-14-E8954A)]()
+[![License: MIT](https://img.shields.io/badge/license-MIT-E8954A.svg)](LICENSE)
+
 An interactive branching story in Scratch, built as a data-driven interpreter to practice CS fundamentals (state machines, separation of data from logic, MVC-style responsibility splits).
 
 **Play:** Load `project/ant-adventure.sb3` in Scratch (https://scratch.mit.edu → File → Load from your computer). Then click the green flag.
@@ -42,6 +48,12 @@ All assignment requirements are met. See `docs/superpowers/specs/2026-04-22-ant-
 Commits carry **what** in the subject line, **why** and **where** in the body, plus an explicit **when** / section tag. Template in the spec (§7).
 
 ---
+
+## License
+
+MIT — see [LICENSE](LICENSE). Covers the Scratch project, the
+transcripts, and the docs in this repo. The CS50 course materials
+themselves are subject to the [course's own terms](https://cs50.harvard.edu/x/).
 
 ## Status
 
